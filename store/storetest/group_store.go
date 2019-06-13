@@ -2272,7 +2272,8 @@ func testIfGroupsThenTeamUsersRemoved(t *testing.T, ss store.Store) {
 		user = res.Data.(*model.User)
 		users = append(users, user)
 
-		res = <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id}, 999)
+		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
+		res = <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: trueOrFalse, SchemeAdmin: !trueOrFalse}, 999)
 		require.Nil(t, res.Err)
 	}
 
@@ -2382,6 +2383,7 @@ func testIfGroupsThenTeamUsersRemoved(t *testing.T, ss store.Store) {
 
 			for _, user := range actual {
 				require.NotNil(t, user.GroupIDs)
+				require.True(t, (user.SchemeAdmin || user.SchemeUser))
 			}
 
 			actualCount, err := ss.Group().CountIfGroupsThenTeamUsersRemoved(team.Id, tc.groupIDs)
